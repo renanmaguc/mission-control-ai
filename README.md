@@ -71,4 +71,4 @@ O modelo pode ser assinatura mensal de conectividade, contrato público de inclu
 - A análise da IA depende da disponibilidade da API Ollama Cloud.
 
 ## Vídeo de demonstração
-Link do vídeo no YouTube: 
+Link do vídeo no YouTube: [text](https://www.youtube.com/watch?v=bHTrEvq1kJ8)
