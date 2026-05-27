@@ -32,9 +32,15 @@ Engenheiro de operações de uma rede de conectividade rural. Essa persona preci
    `python main.py`
 
 ## Demonstração
-![Status da missão](assets/screenshot_status.png)
 
-![Alerta com IA](assets/screenshot_alerta.png)
+### Tela inicial
+![Home](assets/screenshot_home.png)
+
+### Status da missão
+![Status](assets/screenshot_status.png)
+
+### Análise da IA
+![IA](assets/screenshot_alerta.png)
 
 ## System Prompt
 O system prompt está disponível em `prompts/system_prompt.md`.
@@ -53,7 +59,7 @@ A missão ConnectSat busca reduzir falhas de conectividade em regiões rurais, o
 O modelo pode ser híbrido: governos podem contratar o serviço para inclusão digital, enquanto operadoras privadas podem vender conectividade para clientes rurais.
 
 ### Métrica de impacto
-Se o satélite operar de forma estável por um ano, a solução pode manter centenas de escolas rurais conectadas e reduzir interrupções em atendimentos de telemedicina.
+Se o satélite operar de forma estável durante um ano, a solução pode manter aproximadamente 300 escolas rurais conectadas e reduzir falhas de comunicação em atendimentos de telemedicina para milhares de pessoas em regiões afastadas dos grandes centros urbanos.
 
 ### Modelo de negócio
 O modelo pode ser assinatura mensal de conectividade, contrato público de inclusão digital ou dados como serviço para operadoras e órgãos governamentais.

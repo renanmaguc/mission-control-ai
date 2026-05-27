@@ -100,6 +100,8 @@ class MissionEngine:
 
         self.system_prompt = load_system_prompt()
 
+        self.ultimo_status = None
+
     def is_ready(self):
 
         return True
@@ -109,7 +111,9 @@ class MissionEngine:
         Retorna estado atual da telemetria.
         """
 
-        dados = coletar()
+        self.ultimo_status = coletar()
+
+        dados = self.ultimo_status
 
         return f"""
 ===== STATUS DA MISSÃO =====
@@ -130,7 +134,13 @@ Estabilidade: {dados['estabilidade']}%
         """
 
         # 1. Coletar dados
-        dados = coletar()
+        dados = self.ultimo_status
+
+        if dados is None:
+
+            dados = coletar()
+
+        self.ultimo_status = dados
 
         # 2. Avaliar alertas
         alertas = avaliar(dados)
