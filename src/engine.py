@@ -1,97 +1,113 @@
+"""
+Motor de análise da Mission Control AI.
+"""
+
 import os
+
 from ollama import Client
 from dotenv import load_dotenv
-import time
-from datetime import datetime
+
+from pathlib import Path
 
 from src.telemetria import coletar
 from src.alertas import avaliar
 
+
 load_dotenv()
+
+
+# Identificação da trilha
+TRILHA = "connectsat"
+
 
 client = Client(
     host="https://ollama.com",
     headers={
-        "Authorization": "Bearer " + os.environ.get("OLLAMA_API_KEY")
+        'Authorization': 'Bearer ' + os.environ.get(
+            'OLLAMA_API_KEY',
+            ''
+        )
     }
 )
 
-# Teste da API Key
-api = os.environ.get("OLLAMA_API_KEY")
 
-print(
-    "API KEY carregada:",
-    "OK" if api else "FALTANDO"
-)
-
-
-def llm(prompt, max_tokens=800, temperature=0.3):
+def llm(
+    prompt,
+    system=None,
+    max_tokens=800,
+    temperature=0.3
+):
     """
-    Envia prompt ao gpt-oss:120b via Ollama Cloud
-    e retorna texto.
+    Envia prompt ao gpt-oss:120b via Ollama Cloud.
     """
+
+    messages = []
+
+    if system:
+
+        messages.append({
+            "role": "system",
+            "content": system
+        })
+
+    messages.append({
+        "role": "user",
+        "content": prompt
+    })
 
     try:
 
-        resposta = client.chat(
+        return client.chat(
             model="gpt-oss:120b",
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
+            messages=messages,
             options={
                 "num_predict": max_tokens,
                 "temperature": temperature
             },
             stream=False
-        )
-
-        return resposta["message"]["content"].strip()
+        )['message']['content'].strip()
 
     except Exception as e:
 
         return f"⚠️ Erro ao consultar IA: {e}"
 
 
+def load_system_prompt():
+    """
+    Lê o system prompt do arquivo
+    prompts/system_prompt.md
+    """
+
+    path = Path("prompts/system_prompt.md")
+
+    if path.exists():
+
+        return path.read_text(
+            encoding="utf-8"
+        )
+
+    return "Você é um assistente."
+
+
 class MissionEngine:
+    """
+    Motor de análise da missão.
+    """
 
     def __init__(self):
 
-        self.system_prompt = self.load_system_prompt()
+        self.trilha = TRILHA
 
-    def load_system_prompt(self):
-
-        try:
-
-            with open(
-                "prompts/system_prompt.md",
-                "r",
-                encoding="utf-8"
-            ) as arquivo:
-
-                return arquivo.read()
-
-        except:
-
-            return """
-Você é um engenheiro especialista em monitoramento
-de missões espaciais.
-
-Analise os dados da missão e forneça:
-- diagnóstico
-- severidade
-- impacto operacional
-- impacto terrestre
-- recomendações
-"""
+        self.system_prompt = load_system_prompt()
 
     def is_ready(self):
 
-        return api is not None
+        return True
 
     def status_snapshot(self):
+        """
+        Retorna estado atual da telemetria.
+        """
 
         dados = coletar()
 
@@ -108,18 +124,23 @@ Estabilidade: {dados['estabilidade']}%
 """
 
     def analyze(self, pergunta_usuario):
+        """
+        Analisa pergunta usando:
+        telemetria + alertas + IA.
+        """
 
-        # Coleta telemetria
+        # 1. Coletar dados
         dados = coletar()
 
-        # Detecta alertas
+        # 2. Avaliar alertas
         alertas = avaliar(dados)
 
-        # Prompt dinâmico
-        prompt = f"""
-{self.system_prompt}
+        # Formata alertas
+        alertas_texto = "\n".join(alertas)
 
-DADOS ATUAIS DA MISSÃO:
+        # 3. Montar prompt
+        prompt = f"""
+DADOS DA MISSÃO:
 
 Temperatura: {dados['temperatura']}°C
 Energia: {dados['energia']}%
@@ -128,19 +149,24 @@ Latência: {dados['latencia']} ms
 Estabilidade: {dados['estabilidade']}%
 
 ALERTAS DETECTADOS:
-{alertas}
+{alertas_texto}
 
 PERGUNTA DO OPERADOR:
 {pergunta_usuario}
 
-Forneça:
-1. Diagnóstico da missão
-2. Problemas encontrados
-3. Severidade dos riscos
-4. Impacto na Terra
-5. Recomendação operacional
+Analise:
+- riscos
+- severidade
+- impacto operacional
+- impacto terrestre
+- recomendação operacional
 """
 
-        resposta = llm(prompt)
+        # 4. Chamar IA
+        resposta = llm(
+            prompt,
+            system=self.system_prompt
+        )
 
+        # 5. Retornar resposta
         return resposta
